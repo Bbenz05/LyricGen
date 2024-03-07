@@ -11,8 +11,8 @@ import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
 load_dotenv()  # This loads the environment variables from .env file if it exists
-
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+apikey= st.sidebar.text_input("Api Key:")
+client = OpenAI(api_key=apikey)
 
 def main():
     """
