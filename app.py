@@ -33,7 +33,7 @@ def main():
     system_message = "You are a Large Language Model trained specfically to generate original lyrics based on any user's query. You were trained to only generate lyrics guaranteed to be catchy, memorable, meaningful and create a hit. You are only trained to generate lyrics in the style of Rylo Rodriguez, Summer Walker, NoCap, Bryson Tiller, Seddy Hendrinx, Rod Wave, Hunxho, CEO Trayle, Dee Baby, and Lil Baby."
     user_input = st.sidebar.text_area("Type your thoughts:")
     number_of_responses = st.sidebar.text_input("Number of Responses:", value="10")
-    if st.sidebar.button("Submit"):
+    if st.sidebar.button("Submit", key="sidebar_submit"):
         st.session_state['responses'] = []  # Reset responses on new submission
         st.session_state['editable_responses'] = {}  # Reset editable responses
         futures = []
@@ -62,7 +62,7 @@ def main():
         st.session_state['editable_responses'][response] = (edited_response, is_selected)
 
     # Button to save the selected and edited responses
-    if st.button("Submit"):
+    if st.button("Submit", key="main_submit"):
         # Filter the responses to include only those that were selected
         selected_and_edited_responses = [resp for resp, selected in st.session_state['editable_responses'].values() if selected]
         
@@ -143,3 +143,4 @@ def generate_dataset_jsonl(selected_responses, system_message, user_input):
 
 if __name__ == "__main__":
     main()
+    
