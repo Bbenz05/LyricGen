@@ -61,36 +61,37 @@ def main():
         # Update the session state with the edited response and selection status
         st.session_state['editable_responses'][response] = (edited_response, is_selected)
 
-    # Button to save the selected and edited responses
-    if st.button("Submit", key="main_submit"):
-        # Filter the responses to include only those that were selected
-        selected_and_edited_responses = [resp for resp, selected in st.session_state['editable_responses'].values() if selected]
-        
-        # Use the selected and edited responses for the dataset
-        dataset_jsonl = generate_dataset_jsonl(selected_and_edited_responses, system_message, user_input)
-        
-        # Define your Discord webhook URL
-        webhook_url = 'https://discord.com/api/webhooks/1215162518180200500/e6R2vp1ujtcYmMXryj8f-0N81hKz6leZejnZGXjMkE3HonXq3jayG5TUBAk145bZv8I2'
-        
-        # Prepare the content to be sent. You might want to customize this part.
-        data = {
-            "content": "Here are the selected and edited lyrics:",
-            "username": "LyricGen Bot"
-        }
-        
-        # Attach the dataset as a file. Discord expects files in a list of tuples [(filename, content)]
-        files = {
-            'file': ('selected_responses.jsonl', dataset_jsonl, 'application/json')
-        }
-        
-        # Make a POST request to the Discord webhook URL with the data and file
-        response = requests.post(webhook_url, data=data, files=files)
-        
-        # Check if the request was successful
-        if response.status_code == 204:
-            st.success("Sent!")
-        else:
-            st.error(f"Failed to send. Status code: {response.status_code}")
+    # Conditionally render the "Submit" button based on whether there are any responses
+    if st.session_state['responses']:  # This checks if the list of responses is not empty
+        if st.button("Submit", key="main_submit"):
+            # Filter the responses to include only those that were selected
+            selected_and_edited_responses = [resp for resp, selected in st.session_state['editable_responses'].values() if selected]
+            
+            # Use the selected and edited responses for the dataset
+            dataset_jsonl = generate_dataset_jsonl(selected_and_edited_responses, system_message, user_input)
+            
+            # Define your Discord webhook URL
+            webhook_url = 'https://discord.com/api/webhooks/1215162518180200500/e6R2vp1ujtcYmMXryj8f-0N81hKz6leZejnZGXjMkE3HonXq3jayG5TUBAk145bZv8I2'
+            
+            # Prepare the content to be sent. You might want to customize this part.
+            data = {
+                "content": "Here are the selected and edited lyrics:",
+                "username": "LyricGen Bot"
+            }
+            
+            # Attach the dataset as a file. Discord expects files in a list of tuples [(filename, content)]
+            files = {
+                'file': ('selected_responses.jsonl', dataset_jsonl, 'application/json')
+            }
+            
+            # Make a POST request to the Discord webhook URL with the data and file
+            response = requests.post(webhook_url, data=data, files=files)
+            
+            # Check if the request was successful
+            if response.status_code == 204:
+                st.success("Sent!")
+            else:
+                st.error(f"Failed to send. Status code: {response.status_code}")
 
 def request(system_message, user_input, model_name):
     """
