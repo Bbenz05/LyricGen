@@ -1,3 +1,4 @@
 streamlit
 openai
 concurrent-futures; python_version < "3.2"
+python-dotenv
