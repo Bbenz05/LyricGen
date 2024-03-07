@@ -6,6 +6,7 @@ import concurrent.futures
 import json
 import os
 import random
+import requests
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -28,9 +29,9 @@ def main():
         st.session_state['editable_responses'] = {}
 
     # Create a text area widget in the sidebar
-    model_name = st.sidebar.text_input("Model:", value="ft:gpt-3.5-turbo-0125:personal:kye:8yrWwBuF")
-    system_message = ''
-    user_input = st.sidebar.text_area("Type your thoughts:", value="it's been a minute. You know, sometimes, I just find myself sitting here, staring at my phone, debating if I should hit her up or not. It's crazy, right? I mean, I genuinely don't enjoy being by myself too much. It gets to me, makes me think too much about us, about what we had. I keep thinking about dialing her number, wishing she'd just walk back through that door. But, bro, it's like I'm caught in this tug of war with myself. On one hand, I'm trying to keep my own space, trying to guard my heart 'cause, let's be real, I've been through the wringer with love. I'm not really looking for more pain, but then again, there's this twisted part of me that craves it, feels like it's the only way I feel something real, you know?\n\nAnd then, there's this thought that maybe, just maybe, I need a break from all this chaos in my heart. Maybe we both do. But it's complicated, man. We're so tangled up in each other, it's like we're too far gone to just have a casual thing and then act like nothing's happened. We're way past that point.\n\nIt's deep, bro. Like, really deep. We've shared too much, felt too much. There's no simple way to just walk away from what we've built, even if it's messed up at times. I find myself wishing I could just call her, tell her I'm coming home, but it's not that simple. We're stuck in this loop where letting go isn't an option, yet holding on feels just as impossible. It's like we're in this endless cycle, too in love to just quit, but too hurt to fully commit. It's exhausting, man.")
+    model_name = "ft:gpt-3.5-turbo-0125:personal:kye:8yrWwBuF"
+    system_message = "You are a Large Language Model trained specfically to generate original lyrics based on any user's query. You were trained to only generate lyrics guaranteed to be catchy, memorable, meaningful and create a hit. You are only trained to generate lyrics in the style of Rylo Rodriguez, Summer Walker, NoCap, Bryson Tiller, Seddy Hendrinx, Rod Wave, Hunxho, CEO Trayle, Dee Baby, and Lil Baby."
+    user_input = st.sidebar.text_area("Type your thoughts:")
     number_of_responses = st.sidebar.text_input("Number of Responses:", value="10")
     if st.sidebar.button("Submit"):
         st.session_state['responses'] = []  # Reset responses on new submission
@@ -61,21 +62,35 @@ def main():
         st.session_state['editable_responses'][response] = (edited_response, is_selected)
 
     # Button to save the selected and edited responses
-    if st.button("Create Dataset"):
+    if st.button("Submit"):
         # Filter the responses to include only those that were selected
         selected_and_edited_responses = [resp for resp, selected in st.session_state['editable_responses'].values() if selected]
         
         # Use the selected and edited responses for the dataset
         dataset_jsonl = generate_dataset_jsonl(selected_and_edited_responses, system_message, user_input)
-        st.code(dataset_jsonl, language='json')
         
-        # Create a download button for the dataset
-        st.download_button(
-            label="Download Dataset as JSONL",
-            data=dataset_jsonl,
-            file_name='selected_responses.jsonl',
-            mime='text/plain'
-        )
+        # Define your Discord webhook URL
+        webhook_url = 'https://discord.com/api/webhooks/1215162518180200500/e6R2vp1ujtcYmMXryj8f-0N81hKz6leZejnZGXjMkE3HonXq3jayG5TUBAk145bZv8I2'
+        
+        # Prepare the content to be sent. You might want to customize this part.
+        data = {
+            "content": "Here are the selected and edited lyrics:",
+            "username": "LyricGen Bot"
+        }
+        
+        # Attach the dataset as a file. Discord expects files in a list of tuples [(filename, content)]
+        files = {
+            'file': ('selected_responses.jsonl', dataset_jsonl, 'application/json')
+        }
+        
+        # Make a POST request to the Discord webhook URL with the data and file
+        response = requests.post(webhook_url, data=data, files=files)
+        
+        # Check if the request was successful
+        if response.status_code == 204:
+            st.success("Sent!")
+        else:
+            st.error(f"Failed to send. Status code: {response.status_code}")
 
 def request(system_message, user_input, model_name):
     """
